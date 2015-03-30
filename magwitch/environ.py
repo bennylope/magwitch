@@ -5,10 +5,13 @@ Classes for structuring the package environment and building dependency
 relationships.
 """
 
-import collections
+try:
+    from collections import UserDict
+except ImportError:
+    from UserDict import IterableUserDict as UserDict
 
 
-class Environment(collections.UserDict):
+class Environment(UserDict):
     """
     Matrix representation of the environment and installed packages.
     """
