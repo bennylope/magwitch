@@ -11,6 +11,24 @@ from pip._vendor import pkg_resources
 from magwitch.environ import Environment
 
 
+def tree_printer(tree_list, indent=""):
+    for tree in tree_list:
+        print("{0}- {1}".format(indent, tree[0]))
+        if tree[1]:
+            tree_printer(tree[1], indent + "  ")
+
+
+def tree_as_set(tree_list):
+    packages = set([leaf[0] for leaf in tree_list])
+    if not packages:
+        return packages
+
+    for pkg in tree_list:
+        packages = packages.union(tree_as_set(pkg[1]))
+
+    return packages
+
+
 @click.command()
 @click.argument('pkg_name')
 @click.option('--full/--short', default=False)
@@ -27,14 +45,11 @@ def requires(pkg_name, full, tree):
             print(pkg)
         sys.exit()
 
-    def tree_printer(tree_list, indent=""):
-        for tree in tree_list:
-            print("{0}- {1}".format(indent, tree[0]))
-            if tree[1]:
-                tree_printer(tree[1], indent + "  ")
-
     if tree:
         tree_printer(env.requires_full(pkg_name))
+    else:
+        for pkg in tree_as_set(env.requires_full(pkg_name)):
+            print(pkg)
 
 
 @click.command()
@@ -53,11 +68,8 @@ def required_by(pkg_name, full, tree):
             print(pkg)
         sys.exit()
 
-    def tree_printer(tree_list, indent=""):
-        for tree in tree_list:
-            print("{0}- {1}".format(indent, tree[0]))
-            if tree[1]:
-                tree_printer(tree[1], indent + "  ")
-
     if tree:
         tree_printer(env.required_by_full(pkg_name))
+    else:
+        for pkg in tree_as_set(env.required_by_full(pkg_name)):
+            print(pkg)
